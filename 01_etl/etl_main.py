@@ -28,9 +28,10 @@ def open_postgres():
         conn.close()
 
 
-@backoff.on_exception(backoff.expo(max_value=20),
+@backoff.on_exception(backoff.expo,
                       psycopg2.DatabaseError,
-                      logger=logger)
+                      logger=logger,
+                      max_value=15)
 def etl_main_loop():
     with open_postgres() as pg_conn:
 
