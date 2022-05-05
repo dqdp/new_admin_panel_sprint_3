@@ -4,11 +4,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-BATCH_SIZE = 5
+BATCH_SIZE = 3
 
 STATE_FILEPATH = 'state.txt'
 
 INITIAL_STATE = '1970-01-01 00:00:00.000000+00'
+
+BACKOFF_MAX_VALUE = 16  # seconds
 
 DATABASES = {
     'postgres': {
