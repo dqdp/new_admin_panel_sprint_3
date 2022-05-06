@@ -1,16 +1,19 @@
 import os
 
 from dotenv import load_dotenv
+from config.sql import SELECT_MODIFIED_FILMWORK, SELECT_MODIFIED_GENRE, SELECT_MODIFIED_PERSON
 
 load_dotenv()
 
-BATCH_SIZE = 3
+BATCH_SIZE = 20
 
 STATE_FILEPATH = 'state.txt'
 
+CONTENT_TYPES = ('filmwork', 'person', 'genre')
+
 INITIAL_STATE = '1970-01-01 00:00:00.000000+00'
 
-BACKOFF_MAX_VALUE = 16  # seconds
+BACKOFF_MAX_VALUE = 20  # seconds
 
 DATABASES = {
     'postgres': {
@@ -24,4 +27,10 @@ DATABASES = {
         'host':     os.environ.get('ES_HOST', '127.0.0.1'),
         'port':     os.environ.get('ES_PORT', 6543),
     }
+}
+
+QUERIES = {
+    'filmwork': SELECT_MODIFIED_FILMWORK,
+    'person': SELECT_MODIFIED_PERSON,
+    'genre': SELECT_MODIFIED_GENRE
 }

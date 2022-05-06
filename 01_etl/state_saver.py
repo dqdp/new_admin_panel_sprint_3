@@ -5,7 +5,7 @@ from typing import Any, Optional
 
 class BaseStorage:
     @abc.abstractmethod
-    def save_state(self, state: dict) -> None:
+    def save_state(self, key: str, value: Any) -> None:
         """Сохранить состояние в постоянное хранилище"""
         pass
 
@@ -19,10 +19,19 @@ class JsonFileStorage(BaseStorage):
     def __init__(self, file_path: Optional[str] = None):
         self.file_path = file_path
 
-    def save_state(self, state: dict) -> None:
+    def save_state(self, key: str, value: Any) -> None:
         """Сохранить состояние в постоянное хранилище"""
-        with open(self.file_path, "w+") as f:
-            json.dump(state, f)
+        with open(self.file_path, "r+") as f:
+            try:
+                state = json.load(f) or {}
+                state[key] = value
+                f.seek(0)
+                f.truncate()
+                json.dump(state, f)
+            except json.JSONDecodeError:
+                f.seek(0)
+                f.truncate()
+                json.dump({key: value}, f)
 
     def retrieve_state(self) -> dict:
         """Загрузить состояние локально из постоянного хранилища"""
@@ -44,9 +53,9 @@ class State:
         self.storage = storage
 
     def set_state(self, key: str, value: Any) -> None:
-        """Установить состояние для определённого ключа"""
-        self.storage.save_state({key: value})
+        """Установить полное состояние"""
+        self.storage.save_state(key, value)
 
-    def get_state(self, key: str) -> Any:
-        """Получить состояние по определённому ключу"""
-        return self.storage.retrieve_state().get(key)
+    def get_state(self) -> dict:
+        """Получить полное состояние"""
+        return self.storage.retrieve_state()

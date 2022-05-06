@@ -2,6 +2,7 @@ from contextlib import contextmanager
 from datetime import datetime
 
 import psycopg2
+import json
 from config.logger_settings import logger
 from config.settings import DATABASES
 from psycopg2.extras import DictCursor
@@ -11,40 +12,35 @@ def get_curr_time():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f%z") + '00'
 
 
+def to_es_bulk_format(data: list) -> str:
+    result = []
+    for item in data:
+        index_row = {
+            'index': {
+                '_index': 'movies',
+                '_id': item['id']
+            }
+        }
+
+        del item['modified']
+
+        result.append(json.dumps(index_row))
+        result.append(json.dumps(item))
+
+    return '\n'.join(result) + '\n'
+
+
 @contextmanager
 def open_postgres():
-    conn = psycopg2.connect(**DATABASES['postgres'], cursor_factory=DictCursor)
+    '''
+    Contextmanager for posgres db
+    '''
+    DB = DATABASES['postgres']
+    conn = psycopg2.connect(**DB, cursor_factory=DictCursor)
     try:
-        logger.info("Creating connection to postgres db")
+        logger.info("Creating connection to postgres db host "
+                    "{host}:{port}".format(host=DB['host'], port=DB['port']))
         yield conn
     finally:
         logger.info("Closing connection to postgres db")
         conn.close()
-
-
-def get_recursively(search_dict, field):
-    """
-    Takes a dict with nested lists and dicts,
-    and searches all dicts for a key of the field
-    provided.
-    """
-    fields_found = []
-
-    for key, value in search_dict.iteritems():
-
-        if key == field:
-            fields_found.append(value)
-
-        elif isinstance(value, dict):
-            results = get_recursively(value, field)
-            for result in results:
-                fields_found.append(result)
-
-        elif isinstance(value, list):
-            for item in value:
-                if isinstance(item, dict):
-                    more_results = get_recursively(item, field)
-                    for another_result in more_results:
-                        fields_found.append(another_result)
-
-    return fields_found

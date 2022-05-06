@@ -1,37 +1,38 @@
-import json
 from time import sleep
+from typing import Any
 
 import backoff
 import psycopg2
 from config.logger_settings import logger
 from config.settings import (BACKOFF_MAX_VALUE, BATCH_SIZE, INITIAL_STATE,
-                             PARAMS, STATE_FILEPATH)
+                             QUERIES, STATE_FILEPATH, CONTENT_TYPES)
 from postrges_extractor import PostrgesExtractor
 from state_saver import JsonFileStorage, State
-from utils import get_recursively, open_postgres
+from utils import open_postgres, get_curr_time, to_es_bulk_format
 
 
-def process_update(content_type, state, postgres_extractor, state_loader):
+def process_update(content_type: str,
+                   state: str,
+                   postgres_extractor: Any) -> str:
 
-    params = PARAMS[content_type]
-
-    query = params['sql_query'].format(time=state, count=BATCH_SIZE)
+    state = state[content_type]
+    query = QUERIES[content_type].format(modified=state, count=BATCH_SIZE)
     data = postgres_extractor.execute(query)
 
-    for fw in data:
-        print(json.dumps(fw))
-        print('--------------------------')
-        print(fw[0], fw[6])
-    print('------------------------------------------------------0000----------')
-    sleep(1)
+    if not data:
+        return get_curr_time()
 
-    # todo: format data and load to elasticsearch
+    new_state = data[-1]['modified']
+    print(new_state)
+
+    to_es = to_es_bulk_format(data)
+    print(to_es)
+    print('\n-------------------------------------------------------\n')
 
     logger.info('Successfully transferred {count} records '
                 'to elasticsearch'.format(count=len(data)))
 
-    state = get_recursively(data, 'modified')[0]
-    state_loader.set_state(params['state_key'], state)
+    return new_state
 
 
 @backoff.on_exception(backoff.expo,
@@ -39,28 +40,23 @@ def process_update(content_type, state, postgres_extractor, state_loader):
                       logger=logger,
                       max_value=BACKOFF_MAX_VALUE)
 def etl_main_loop():
+    '''
+    Функция с бесконечным циклом, вычитывающая изменения из базы postgres и
+    записывающая их в elasticsearch. При падении базы включается механизм
+    backoff. Состояние сохраняется на диск на каждой итерации цикла
+    '''
     with open_postgres() as pg_conn:
 
         postgres_extractor = PostrgesExtractor(pg_conn)
         state_loader = State(JsonFileStorage(STATE_FILEPATH))
-        filmwork_state = state_loader.get_state('filwork_modified') or INITIAL_STATE
-        person_state = state_loader.get_state('person_modified') or INITIAL_STATE
-        genre_state = state_loader.get_state('filwork_modified') or INITIAL_STATE
+        state = state_loader.get_state() or {sk: INITIAL_STATE for sk in CONTENT_TYPES}
 
         while True:
+            for content_type in CONTENT_TYPES:
+                state[content_type] = process_update(content_type, state, postgres_extractor)
+                state_loader.set_state(content_type, state[content_type])
 
-            process_update('filmworks',
-                           filmwork_state,
-                           postgres_extractor,
-                           state_loader)
-            process_update('persons',
-                           person_state,
-                           postgres_extractor,
-                           state_loader)
-            process_update('genres',
-                           genre_state,
-                           postgres_extractor,
-                           state_loader)
+            sleep(0.25)
 
 
 if __name__ == '__main__':

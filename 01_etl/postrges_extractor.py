@@ -8,4 +8,10 @@ class PostrgesExtractor:
     def execute(self, query: str):
         cursor = self.connection.cursor()
         cursor.execute(query)
-        return cursor.fetchall()
+        # return cursor.fetchall()
+
+        desc = cursor.description
+        column_names = [col[0] for col in desc]
+        data = [dict(zip(column_names, row))
+                for row in cursor.fetchall()]
+        return data
