@@ -1,0 +1,15 @@
+version: "3.3"
+
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.7.0
+    environment:
+      - "discovery.type=single-node"
+    ports:
+      - 9200:9200
+      
+  etl:
+    build: .
+    env_file:
+      - ./config/.env
+
