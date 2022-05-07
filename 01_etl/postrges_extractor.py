@@ -2,10 +2,17 @@ from psycopg2.extensions import connection as _connection
 
 
 class PostrgesExtractor:
+    '''
+    Класс для извлечения данных из postgres db
+    '''
     def __init__(self, connection: _connection):
         self.connection = connection
 
     def execute(self, query: str):
+        '''
+        Выполняет запрос и возвращает
+        результат в виде словаря
+        '''
         cursor = self.connection.cursor()
         cursor.execute(query)
 
