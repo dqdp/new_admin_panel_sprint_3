@@ -10,7 +10,7 @@ BATCH_SIZE = 50
 
 STATE_FILEPATH = 'state.txt'
 
-CONTENT_TYPES = ('filmwork', 'person', 'genre')
+TABLES = ('filmwork', 'person', 'genre')
 
 INITIAL_STATE = '1970-01-01 00:00:00.000000+00'
 
