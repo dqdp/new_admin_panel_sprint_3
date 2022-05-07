@@ -9,7 +9,8 @@ from config.settings import (BACKOFF_MAX_VALUE, BATCH_SIZE, CONTENT_TYPES,
                              INITIAL_STATE, QUERIES, STATE_FILEPATH)
 from postrges_extractor import PostrgesExtractor
 from state_saver import JsonFileStorage, State
-from utils import get_curr_time, open_postgres, to_es_bulk_format, post_bulk_data
+from utils import (get_curr_time, open_postgres, post_bulk_data,
+                   to_es_bulk_format)
 
 
 def process_update(content_type: str,
