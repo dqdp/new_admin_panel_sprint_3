@@ -4,9 +4,13 @@ SELECT_MODIFIED_FILMWORK = '''SELECT
         fw.title,
         fw.description,
         to_char(fw.modified, 'YYYY-MM-DD HH24:MI:SS.FF6TZH') AS modified,
-        string_agg(DISTINCT p.full_name, '') FILTER(WHERE p.id is not null AND pfw.role = 'director') AS director,
-        string_agg(DISTINCT p.full_name, '') FILTER(WHERE p.id is not null AND pfw.role = 'actor') AS actors_names,
-        string_agg(DISTINCT p.full_name, '') FILTER(WHERE p.id is not null AND pfw.role = 'writer') AS writers_names,
+        COALESCE (
+            string_agg(DISTINCT p.full_name, '')
+            FILTER(WHERE p.id is not null AND pfw.role = 'director'),
+            ''
+            ) AS director,
+        array_agg(DISTINCT p.full_name) FILTER(WHERE p.id is not null AND pfw.role = 'actor') AS actors_names,
+        array_agg(DISTINCT p.full_name) FILTER(WHERE p.id is not null AND pfw.role = 'writer') AS writers_names,
         COALESCE (
             json_agg(
                 DISTINCT jsonb_build_object(
@@ -43,9 +47,13 @@ SELECT_MODIFIED_PERSON = '''SELECT
         fw.description,
         fw.rating AS imdb_rating,
         to_char(MAX(p.modified), 'YYYY-MM-DD HH24:MI:SS.FF6TZH') AS modified,
-        string_agg(DISTINCT p.full_name, '') FILTER(WHERE p.id is not null AND pfw.role = 'director') AS director,
-        string_agg(DISTINCT p.full_name, '') FILTER(WHERE p.id is not null AND pfw.role = 'actor') AS actors_names,
-        string_agg(DISTINCT p.full_name, '') FILTER(WHERE p.id is not null AND pfw.role = 'writer') AS writers_names,
+        COALESCE (
+            string_agg(DISTINCT p.full_name, '')
+            FILTER(WHERE p.id is not null AND pfw.role = 'director'),
+            ''
+            ) AS director,
+        array_agg(DISTINCT p.full_name) FILTER(WHERE p.id is not null AND pfw.role = 'actor') AS actors_names,
+        array_agg(DISTINCT p.full_name) FILTER(WHERE p.id is not null AND pfw.role = 'writer') AS writers_names,
         COALESCE (
             json_agg(
                 DISTINCT jsonb_build_object(
@@ -81,9 +89,13 @@ SELECT_MODIFIED_GENRE = '''SELECT
         fw.description,
         fw.rating AS imdb_rating,
         to_char(MAX(g.modified), 'YYYY-MM-DD HH24:MI:SS.FF6TZH') AS modified,
-        string_agg(DISTINCT p.full_name, '') FILTER(WHERE p.id is not null AND pfw.role = 'director') AS director,
-        string_agg(DISTINCT p.full_name, '') FILTER(WHERE p.id is not null AND pfw.role = 'actor') AS actors_names,
-        string_agg(DISTINCT p.full_name, '') FILTER(WHERE p.id is not null AND pfw.role = 'writer') AS writers_names,
+        COALESCE (
+            string_agg(DISTINCT p.full_name, '')
+            FILTER(WHERE p.id is not null AND pfw.role = 'director'),
+            ''
+            ) AS director,
+        array_agg(DISTINCT p.full_name) FILTER(WHERE p.id is not null AND pfw.role = 'actor') AS actors_names,
+        array_agg(DISTINCT p.full_name) FILTER(WHERE p.id is not null AND pfw.role = 'writer') AS writers_names,
         COALESCE (
             json_agg(
                 DISTINCT jsonb_build_object(
