@@ -1,10 +1,8 @@
-from typing import Any
-
 import backoff
 import psycopg2
 import requests
 from config.logger_settings import logger
-from config.settings import (BACKOFF_MAX_VALUE, BATCH_SIZE, CONTENT_TYPES,
+from config.settings import (BACKOFF_MAX_VALUE, BATCH_SIZE, TABLES,
                              INITIAL_STATE, QUERIES, STATE_FILEPATH)
 from postrges_extractor import PostrgesExtractor
 from state_saver import JsonFileStorage, State
@@ -12,31 +10,31 @@ from utils import (get_curr_time, open_postgres, post_bulk_data,
                    to_es_bulk_format)
 
 
-def process_update(content_type: str,
+def process_update(table: str,
                    state: str,
-                   postgres_extractor: Any) -> str:
+                   pg_extractor: PostrgesExtractor) -> str:
     '''
     Функция реализующая пайплайн обработки данных - вычитывает порцию данных
     по изменению в конкретной таблице, преобразует их в нужный формат и отправляет
     bulk-запрос в elasticserch
     '''
-    state = state[content_type]
-    query = QUERIES[content_type].format(modified=state, count=BATCH_SIZE)
-    data = postgres_extractor.execute(query)
+    state = state[table]
+    query = QUERIES[table].format(modified=state, count=BATCH_SIZE)
+    data = pg_extractor.execute(query)
     if not data:
         return get_curr_time()
 
     new_state = data[-1]['modified']
 
-    to_es = to_es_bulk_format(data)
-    response = post_bulk_data(to_es)
+    formatted_data = to_es_bulk_format(data)
+    response = post_bulk_data(formatted_data)
 
     if response.ok:
         logger.info('Successfully transferred {count} records '
                     'to elasticsearch'.format(count=len(data)))
     else:
-        logger.info('Error transfer data to elasticsearch '
-                    '{ec}'.format(ec=response.reason))
+        logger.error('Error transfer data to elasticsearch '
+                     '{ec}'.format(ec=response.reason))
     return new_state
 
 
@@ -53,14 +51,14 @@ def etl_main_loop():
     '''
     with open_postgres() as pg_conn:
 
-        postgres_extractor = PostrgesExtractor(pg_conn)
+        pg_extractor = PostrgesExtractor(pg_conn)
         state_loader = State(JsonFileStorage(STATE_FILEPATH))
-        state = state_loader.get_state() or {sk: INITIAL_STATE for sk in CONTENT_TYPES}
+        state = state_loader.get_state() or {tbl: INITIAL_STATE for tbl in TABLES}
 
         while True:
-            for content_type in CONTENT_TYPES:
-                state[content_type] = process_update(content_type, state, postgres_extractor)
-                state_loader.set_state(content_type, state[content_type])
+            for table in TABLES:
+                state[table] = process_update(table, state, pg_extractor)
+                state_loader.set_state(table, state[table])
 
 
 if __name__ == '__main__':
