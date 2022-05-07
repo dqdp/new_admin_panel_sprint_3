@@ -53,7 +53,7 @@ class State:
         self.storage = storage
 
     def set_state(self, key: str, value: Any) -> None:
-        """Установить полное состояние"""
+        """Установить состояние по ключу и значению"""
         self.storage.save_state(key, value)
 
     def get_state(self) -> dict:

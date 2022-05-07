@@ -1,11 +1,22 @@
+import json
 from contextlib import contextmanager
 from datetime import datetime
 
 import psycopg2
-import json
+import requests
 from config.logger_settings import logger
-from config.settings import DATABASES
+from config.settings import DATABASES, HEADER_JSON
 from psycopg2.extras import DictCursor
+
+
+def post_bulk_data(body: str) -> requests.Response:
+    '''
+    Отправка bulk-запроса с данными в elasticserch
+    '''
+    host = DATABASES['es']['host']
+    port = DATABASES['es']['port']
+    url = f'http://{host}:{port}/_bulk'
+    return requests.post(url, headers=HEADER_JSON, data=body)
 
 
 def get_curr_time():
@@ -13,18 +24,20 @@ def get_curr_time():
 
 
 def to_es_bulk_format(data: list) -> str:
+    '''
+    Формирование тела bulk-запроса для внесения данных в 
+    elasticserch пачкой 
+    '''
     result = []
     for item in data:
-        index_row = {
+        index_item = {
             'index': {
                 '_index': 'movies',
                 '_id': item['id']
             }
         }
-
         del item['modified']
-
-        result.append(json.dumps(index_row))
+        result.append(json.dumps(index_item))
         result.append(json.dumps(item))
 
     return '\n'.join(result) + '\n'
@@ -35,7 +48,7 @@ def open_postgres():
     '''
     Contextmanager for posgres db
     '''
-    DB = DATABASES['postgres']
+    DB = DATABASES['pg']
     conn = psycopg2.connect(**DB, cursor_factory=DictCursor)
     try:
         logger.info("Creating connection to postgres db host "
