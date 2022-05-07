@@ -1,5 +1,6 @@
-from psycopg2.extensions import connection as _connection
 from typing import List
+
+from psycopg2.extensions import connection as _connection
 
 
 class PostrgesExtractor:
