@@ -34,7 +34,6 @@ def process_update(content_type: str,
     if response.ok:
         logger.info('Successfully transferred {count} records '
                     'to elasticsearch'.format(count=len(data)))
-        print(response.text)
     else:
         logger.info('Error transfer data to elasticsearch '
                     '{ec}'.format(ec=response.reason))
