@@ -1,4 +1,3 @@
-from time import sleep
 from typing import Any
 
 import backoff
@@ -18,7 +17,7 @@ def process_update(content_type: str,
                    postgres_extractor: Any) -> str:
     '''
     Функция реализующая пайплайн обработки данных - вычитывает порцию данных
-    по изменению в конкретной таблице, преобразует их в нужный формат и отправляет 
+    по изменению в конкретной таблице, преобразует их в нужный формат и отправляет
     bulk-запрос в elasticserch
     '''
     state = state[content_type]
@@ -50,7 +49,7 @@ def process_update(content_type: str,
 def etl_main_loop():
     '''
     Функция с бесконечным циклом, вычитывающая изменения из базы postgres и
-    записывающая их в elasticsearch. При недоступности сервисов включается 
+    записывающая их в elasticsearch. При недоступности сервисов включается
     механизм backoff. Состояние сохраняется на диск на каждой итерации цикла
     '''
     with open_postgres() as pg_conn:
@@ -60,11 +59,9 @@ def etl_main_loop():
         state = state_loader.get_state() or {sk: INITIAL_STATE for sk in CONTENT_TYPES}
 
         while True:
-            for content_type in ['filmwork']: #CONTENT_TYPES:
+            for content_type in CONTENT_TYPES:
                 state[content_type] = process_update(content_type, state, postgres_extractor)
                 state_loader.set_state(content_type, state[content_type])
-
-            sleep(5)
 
 
 if __name__ == '__main__':

@@ -25,8 +25,8 @@ def get_curr_time():
 
 def to_es_bulk_format(data: list) -> str:
     '''
-    Формирование тела bulk-запроса для внесения данных в 
-    elasticserch пачкой 
+    Формирование тела bulk-запроса для внесения данных в
+    elasticserch пачкой
     '''
     result = []
     for item in data:
