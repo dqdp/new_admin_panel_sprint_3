@@ -4,9 +4,10 @@ from datetime import datetime
 
 import psycopg2
 import requests
+from psycopg2.extras import DictCursor
+
 from config.logger_settings import logger
 from config.settings import DATABASES, HEADER_JSON
-from psycopg2.extras import DictCursor
 
 
 def post_bulk_data(body: str) -> requests.Response:

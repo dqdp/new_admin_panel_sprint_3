@@ -1,14 +1,12 @@
-from time import sleep
 import backoff
 import psycopg2
 import requests
+
 from config.logger_settings import logger
-from config.settings import (BACKOFF_MAX_VALUE, BATCH_SIZE, TABLES,
-                             INITIAL_STATE, QUERIES, STATE_FILEPATH)
+from config.settings import BACKOFF_MAX_VALUE, BATCH_SIZE, INITIAL_STATE, QUERIES, STATE_FILEPATH, TABLES
 from postrges_extractor import PostrgesExtractor
 from state_saver import JsonFileStorage, State
-from utils import (get_curr_time, open_postgres, post_bulk_data,
-                   to_es_bulk_format)
+from utils import get_curr_time, open_postgres, post_bulk_data, to_es_bulk_format
 
 
 def process_update(table: str,
@@ -61,7 +59,6 @@ def etl_main_loop():
             for table in TABLES:
                 state[table] = process_update(table, state, pg_extractor)
                 state_loader.set_state(table, state[table])
-            sleep(3)
 
 
 if __name__ == '__main__':

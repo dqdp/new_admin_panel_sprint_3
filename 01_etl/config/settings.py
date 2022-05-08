@@ -1,8 +1,8 @@
 import os
 
-from config.sql import (SELECT_MODIFIED_FILMWORK, SELECT_MODIFIED_GENRE,
-                        SELECT_MODIFIED_PERSON)
 from dotenv import load_dotenv
+
+from config.sql import SELECT_MODIFIED_FILMWORK, SELECT_MODIFIED_GENRE, SELECT_MODIFIED_PERSON
 
 load_dotenv()
 
