@@ -6,7 +6,7 @@ import psycopg2
 import requests
 from psycopg2.extras import DictCursor
 
-from config.logger_settings import logger
+from config.logger_settings import etl_logger
 from config.settings import DATABASES, HEADER_JSON
 
 
@@ -52,9 +52,9 @@ def open_postgres():
     DB = DATABASES['pg']
     conn = psycopg2.connect(**DB, cursor_factory=DictCursor)
     try:
-        logger.info("Creating connection to postgres db host "
-                    "{host}:{port}".format(host=DB['host'], port=DB['port']))
+        etl_logger.info("Creating connection to postgres db host "
+                        "{host}:{port}".format(host=DB['host'], port=DB['port']))
         yield conn
     finally:
-        logger.info("Closing connection to postgres db")
+        etl_logger.info("Closing connection to postgres db")
         conn.close()

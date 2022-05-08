@@ -19,7 +19,7 @@ LOGGING_CONFIG = {
     },
 
     'loggers': {
-        'logger': {
+        'etl_logger': {
             'handlers': ['file_handler'],
             'level': 'DEBUG',
             'propagate': True
@@ -28,4 +28,4 @@ LOGGING_CONFIG = {
 }
 
 logging.config.dictConfig(LOGGING_CONFIG)
-logger = logging.getLogger('logger')
+etl_logger = logging.getLogger('etl_logger')
