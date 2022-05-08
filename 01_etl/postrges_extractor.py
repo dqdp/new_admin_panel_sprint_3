@@ -1,5 +1,3 @@
-from typing import List
-
 from psycopg2.extensions import connection as _connection
 
 
@@ -10,7 +8,7 @@ class PostrgesExtractor:
     def __init__(self, connection: _connection):
         self.connection = connection
 
-    def execute(self, query: str) -> List[dict]:
+    def execute(self, query: str) -> list[dict]:
         '''
         Выполняет запрос и возвращает результат в
         виде списка словарей сразу с именами полей

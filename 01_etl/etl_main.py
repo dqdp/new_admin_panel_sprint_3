@@ -1,3 +1,4 @@
+from time import sleep
 import backoff
 import psycopg2
 import requests
@@ -26,15 +27,16 @@ def process_update(table: str,
 
     new_state = data[-1]['modified']
 
-    formatted_data = to_es_bulk_format(data)
+    formatted_data = to_es_bulk_format(data, 'movies')
     response = post_bulk_data(formatted_data)
 
-    if response.ok:
-        logger.info('Successfully transferred {count} records '
-                    'to elasticsearch'.format(count=len(data)))
-    else:
+    if not response.ok:
         logger.error('Error transfer data to elasticsearch '
                      '{ec}'.format(ec=response.reason))
+        return state
+
+    logger.info('Successfully transferred {count} records '
+                'to elasticsearch'.format(count=len(data)))
     return new_state
 
 
@@ -59,6 +61,7 @@ def etl_main_loop():
             for table in TABLES:
                 state[table] = process_update(table, state, pg_extractor)
                 state_loader.set_state(table, state[table])
+            sleep(3)
 
 
 if __name__ == '__main__':

@@ -23,7 +23,7 @@ def get_curr_time():
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f%z") + '00'
 
 
-def to_es_bulk_format(data: list) -> str:
+def to_es_bulk_format(data: list, index: str) -> str:
     '''
     Формирование тела bulk-запроса для внесения данных в
     elasticserch пачкой
@@ -32,7 +32,7 @@ def to_es_bulk_format(data: list) -> str:
     for item in data:
         index_item = {
             'index': {
-                '_index': 'movies',
+                '_index': index,
                 '_id': item['id']
             }
         }

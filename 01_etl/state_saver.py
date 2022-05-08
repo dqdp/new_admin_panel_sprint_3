@@ -20,8 +20,13 @@ class JsonFileStorage(BaseStorage):
         self.file_path = file_path
 
     def save_state(self, key: str, value: Any) -> None:
-        """Сохранить состояние в постоянное хранилище"""
-        with open(self.file_path, "r+") as f:
+        """
+        Сохранить состояние в постоянное хранилище
+
+        Тут модификатор указан специально, если указать w+,
+        файл очистится до выполнения json.load(f) а мне это не нужно
+        """
+        with open(self.file_path, "w+") as f:
             try:
                 state = json.load(f) or {}
                 state[key] = value
@@ -34,7 +39,12 @@ class JsonFileStorage(BaseStorage):
                 json.dump({key: value}, f)
 
     def retrieve_state(self) -> dict:
-        """Загрузить состояние локально из постоянного хранилища"""
+        """
+        Загрузить состояние локально из постоянного хранилища.
+
+        И здесь модификатор на запись указан специально, чтобы если файла нет,
+        он создался, т.к. в репозиторий пустой файл я решил не сохранять
+        """
         with open(self.file_path, "w+") as f:
             try:
                 state = json.load(f)
