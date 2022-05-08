@@ -2,7 +2,7 @@ import backoff
 import psycopg2
 import requests
 
-from config.logger_settings import logger
+from config.logger_settings import etl_logger
 from config.settings import BACKOFF_MAX_VALUE, BATCH_SIZE, INITIAL_STATE, QUERIES, STATE_FILEPATH, TABLES
 from postrges_extractor import PostrgesExtractor
 from state_saver import JsonFileStorage, State
@@ -10,7 +10,7 @@ from utils import get_curr_time, open_postgres, post_bulk_data, to_es_bulk_forma
 
 
 def process_update(table: str,
-                   state: str,
+                   state: dict,
                    pg_extractor: PostrgesExtractor) -> str:
     '''
     Функция реализующая пайплайн обработки данных - вычитывает порцию данных
@@ -29,19 +29,19 @@ def process_update(table: str,
     response = post_bulk_data(formatted_data)
 
     if not response.ok:
-        logger.error('Error transfer data to elasticsearch '
-                     '{ec}'.format(ec=response.reason))
+        etl_logger.error('Error transfer data to elasticsearch '
+                         '{ec}'.format(ec=response.reason))
         return state
 
-    logger.info('Successfully transferred {count} records '
-                'to elasticsearch'.format(count=len(data)))
+    etl_logger.info('Successfully transferred {count} records '
+                    'to elasticsearch'.format(count=len(data)))
     return new_state
 
 
 @backoff.on_exception(backoff.expo,
                       (psycopg2.DatabaseError,
                        requests.ConnectionError),
-                      logger=logger,
+                      logger=etl_logger,
                       max_value=BACKOFF_MAX_VALUE)
 def etl_main_loop():
     '''
