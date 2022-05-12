@@ -22,9 +22,6 @@ class JsonFileStorage(BaseStorage):
     def save_state(self, key: str, value: Any) -> None:
         """
         Сохранить состояние в постоянное хранилище
-
-        Тут модификатор указан специально, если указать w+,
-        файл очистится до выполнения json.load(f) а мне это не нужно
         """
         with open(self.file_path, "w+") as f:
             try:
@@ -41,9 +38,6 @@ class JsonFileStorage(BaseStorage):
     def retrieve_state(self) -> dict:
         """
         Загрузить состояние локально из постоянного хранилища.
-
-        И здесь модификатор на запись указан специально, чтобы если файла нет,
-        он создался, т.к. в репозиторий пустой файл я решил не сохранять
         """
         with open(self.file_path, "w+") as f:
             try:
